@@ -7,7 +7,7 @@ var app = express();
 var staticFileMiddleware = express.static(path.join(__dirname + '/dist'));
 
 app.set('port',process.env.PORT||5000);
-
+app.use(staticFileMiddleware);
 app.use(history({
   disableDotRule: true,
   verbose: true
@@ -20,6 +20,6 @@ app.listen(app.get('port'), function () {
 
 
 app.get('/', function (req, res) {
-  res.render(path.join(__dirname + '/dist/index.html'));
+  res.render(path.join(__dirname + 'dist/index.html'));
 });
 
