@@ -1,11 +1,10 @@
 <template>
-    <v-layout column>
+    <v-container>
         <div>
-            <input v-model="username" type="text">
+            <v-text-field v-model="username" type="text"></v-text-field>
             <v-btn @click="match">Enter</v-btn>
-            <v-btn @click="show">Show</v-btn>
         </div>
-    </v-layout>
+    </v-container>
 </template>
 
 <script>
@@ -22,20 +21,15 @@ export default {
     mounted:function(){
         
         socket.on("send",(data)=>{
-            console.log("Get Test")
-            console.log(data)
+            console.log(data.test)
+            window.location.href = "/Game"
         })
-
-        socket.emit('Matching', {"username":this.username})
 
     },
     methods:{
         match(){
             socket.emit('Matching', {"username":this.username})
         },
-        show(){
-            console.log("SHOW")
-        }
     }
 }
 
