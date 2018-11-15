@@ -26,17 +26,22 @@
         <v-flex  xs12>
             <div v-show="gamestatus >0 && gamestatus <5 ">
                 <h3>{{currentques.ques}}</h3>
-                <h4>{{ answer[0] }}  ||| {{ answer[1] }}</h4>
+                <h4>{{ answer }}  ||| {{ opanswer }}</h4>
                 
                 <ul>
                         <li v-for="(value, index) in currentques.options"
                             @click="check(index+1)" 
                             :key = "index"
-                            :class="{correct: status=='correct' && currentques.ans == index+1 , error: status=='wrong' && temp == index+1 }"
+                            :class="{correct: (status=='correct' || opstatus=='correct')&& currentques.ans == index+1,
+                                    error: (status=='wrong' && answer == index+1) || (opstatus=='wrong' && opanswer == index+1) }"
                             class="option"
                             >
-                            
+                            <!--own answer-->
+                            <span v-if = " status=='correct' && answer == index+1 " style="">O</span>
+                            <span v-if = "status=='wrong' && answer == index+1" style="">X</span>
                             {{value}}
+                            <span v-if = "opstatus=='correct' && opanswer == index+1" style="">O</span>
+                            <span v-if = "opstatus=='wrong' && opanswer == index+1" style="">X</span>
                         </li>
    
                 </ul>
@@ -58,17 +63,18 @@ export default {
     return {
       user:[],
       gamestatus:0, //0:Setting //1:ques1 //2:ques2 //5:End
-      temp:"",
       data:[],
       questions:[],
+      currentques: "",
       timer: null,
       timeout:null,
       count:'5', //display for countdown
       opscore:0, 
-      score:0,// [0,0] [first person score, second person score]
-      answer:[0,0],
-      currentques: "",
-      status:"" // correct or wrong
+      score:0,//
+      answer:0,
+      opanswer:0,
+      status:"",
+      opstatus:"" // correct or wrong
     }
   },
   created:function(){
@@ -95,14 +101,22 @@ export default {
       
       socket.on("Next",(data)=>{
             this.opscore = data.score
-            this.answer[1]  = data.ans 
       })
 
       socket.on("FinishChoosen",(data)=>{
-
-            this.cleartime();
-            this.pick()
-            this.settimer(8)
+            console.log("Both People Choosed")
+            console.log(socket.id)
+            if(data[0].socketid == socket.id)
+            {
+                this.opanswer  = data[1].ans 
+                this.opstatus = data[1].status
+            }else{
+                this.opanswer  = data[0].ans 
+                this.opstatus = data[0].status
+            }
+            //this.cleartime();
+            //this.pick()
+            //this.settimer(8)
       })
 
   },
@@ -124,7 +138,7 @@ export default {
           },t*1000)
       },
       check(index){
-          this.temp = index
+          this.answer = index
         $(".option").css('pointer-events', 'none');
         if(this.currentques.ans === index){
             console.log("right")
@@ -135,17 +149,21 @@ export default {
             this.status="wrong"
         }
         
-        socket.emit('Choose',{"ans":index,"correct":this.status,"score":this.score})
+        socket.emit('Choose',{"ans":index,"status":this.status,"score":this.score})
         
       },
       pick(){ 
          if(this.gamestatus == 4){
             this.gamestatus +=1
-            return
+            socket.emit("End")
+            return ;
           }
           this.gamestatus +=1 
           this.currentques = this.questions[this.gamestatus-1]
           this.status=''
+          this.opstatus=''
+          this.answer =0
+          this.opanswer = 0
           $(".option").css('pointer-events', 'auto');
       },
       cleartime(){
