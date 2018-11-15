@@ -56,7 +56,7 @@
 
 <script>
 import io from 'socket.io-client';
-const socket = io('http://localhost:3000/');
+var socket = io.connect("https://whispering-forest-23961.herokuapp.com/");
 export default {
   name: 'Game',
   data () {
