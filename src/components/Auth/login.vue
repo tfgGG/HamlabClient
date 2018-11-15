@@ -1,22 +1,49 @@
 <template>
-  <div class="login">
+  <!--<div class="login">-->
     
-    <div class="g-signin2"  data-theme="dark"></div>
-    <div>{{msg}}</div>
-    <a href="#" v-on:click="signOut">Sign out</a>
-    <button v-on:click="show">show</button>
-    <button v-on:click="test">test</button>
-  </div>
+    <!-- <div class="g-signin2"  data-theme="dark"></div>-->
+     <!--<div>{{msg}}</div>-->
+     <!--<a href="#" v-on:click="signOut">Sign out</a>-->
+    <!-- <button v-on:click="show">show</button>-->
+     <!--<button v-on:click="test">test</button>-->
+   <!--</div>-->
+   <v-layout column>
+    <v-flex xs6 offset-xs3>
+
+        <v-text-field
+          label="Email"
+          v-model="email"
+        ></v-text-field>
+        <br>
+        <v-text-field
+          label="Password"
+          type="password"
+          v-model="password"
+        ></v-text-field>
+        <br>
+        <div class="danger-alert"  />
+        <br>
+        <v-btn
+          dark
+          class="cyan"
+          @click="login">
+          Login
+        </v-btn>
+
+    </v-flex>
+  </v-layout>
 </template>
 
 <script>
 import google from '@/lib/google';
-
+import Auth from '@/lib/Auth'
 export default {
   name: 'login',
   data () {
     return {
       msg: 'Welcome to Your Vue.js App',
+      email:"",
+      password:""
     }
   },
   metaInfo:{
@@ -48,6 +75,18 @@ export default {
       });
  
     },   
+    async login () {
+      try {
+        const response = await Auth.login({
+          email: this.email,
+          password: this.password
+        })
+        this.$store.dispatch('setToken', response.data.token)
+        this.$store.dispatch('setUser', response.data.user)
+      } catch (error) {
+        this.error = error.response.data.error
+      }
+    },
     test(){
       
     }

@@ -2,8 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Meta from 'vue-meta'
 import HelloWorld from '@/components/HelloWorld'
-import login from '@/components/login'
-import Register from '@/components/Register'
+import login from '@/components/Auth/login'
+import Register from '@/components/Auth/Register'
 import Game from '@/components/Game/Game'
 import Begin from '../components/Game/Begin'
 
@@ -34,5 +34,11 @@ export default new Router({
       name: 'Begin',
       component: Begin
     },
+    {
+      path: '/login',
+      name: 'login',
+      component: login
+    },
+    
   ]
 })
