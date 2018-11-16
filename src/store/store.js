@@ -12,7 +12,8 @@ export default new Vuex.Store({
   state: {
     token: null,
     user: null,
-    isUserLoggedIn: false
+    isUserLoggedIn: false,
+    roomid:''
   },
   mutations: {
     setToken (state, token) {
@@ -21,6 +22,10 @@ export default new Vuex.Store({
     },
     setUser (state, user) {
       state.user = user
+    },
+    setroomid(state,roomid){
+      console.log("Store setroomid",roomid)
+      state.roomid = roomid
     }
   },
   actions: {
@@ -29,6 +34,9 @@ export default new Vuex.Store({
     },
     setUser ({commit}, user) {
       commit('setUser', user)
+    },
+    setroomid({commit},roomid){
+      commit('setroomid',roomid)
     }
   }
 })

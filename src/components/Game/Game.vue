@@ -77,12 +77,20 @@ export default {
       opstatus:"" // correct or wrong
     }
   },
+  computed:{
+      roomid(){
+          return this.$store.state.roomid
+      }
+  },
   created:function(){
       
      // this.fetchdata()
       console.log("In Game Page")
-      socket.emit("Starting")
-      
+      //if(this.roomid != pathroom)
+      //{
+
+      //}
+      socket.emit("Starting",this.roomid)
 
   },
   mounted:function(){
@@ -110,9 +118,11 @@ export default {
             {
                 this.opanswer  = data[1].ans 
                 this.opstatus = data[1].status
+                this.opscore = data[1].score
             }else{
                 this.opanswer  = data[0].ans 
                 this.opstatus = data[0].status
+                this.opscore = data[0].score
             }
             //this.cleartime();
             //this.pick()
@@ -149,13 +159,14 @@ export default {
             this.status="wrong"
         }
         
-        socket.emit('Choose',{"ans":index,"status":this.status,"score":this.score})
+        socket.emit('Choose',{"ans":index,"status":this.status,"score":this.score},this.roomid)
         
       },
       pick(){ 
          if(this.gamestatus == 4){
             this.gamestatus +=1
-            socket.emit("End")
+            socket.emit("End",this.roomid)
+            this.$store.dispatch("setroomid",'')
             return ;
           }
           this.gamestatus +=1 
