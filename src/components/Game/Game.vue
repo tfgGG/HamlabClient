@@ -1,5 +1,5 @@
 <template>
-  <v-container >
+  <v-container style="">
       <v-layout row align-start justify-center>
         <v-flex xs4>
             <div v-show="gamestatus != 0 " class="item elevation-5">
@@ -25,7 +25,7 @@
       <v-layout row align-start justify-center >
         <v-flex  xs12>
             <div v-show="gamestatus >0 && gamestatus <5 ">
-                <h3>{{currentques.ques}}</h3>
+                <h3>{{currentques.question}}</h3>
                 <h4>{{ answer }}  ||| {{ opanswer }}</h4>
                 
                 <ul>
@@ -46,9 +46,12 @@
    
                 </ul>
             </div>
-          <div v-show="gamestatus == 5 ">
-              <h3>End Game</h3>
-          </div>
+            <div>
+                {{answeredstatus}}
+            </div>
+            <div v-show="gamestatus == 5 ">
+                <h3>End Game</h3>
+            </div>
         </v-flex>
       </v-layout>
   </v-container>
@@ -56,7 +59,8 @@
 
 <script>
 import io from 'socket.io-client';
-var socket = io.connect("https://whispering-forest-23961.herokuapp.com/");
+//var socket = io.connect("https://whispering-forest-23961.herokuapp.com/");
+var socket = io.connect('http://localhost:3000/')
 export default {
   name: 'Game',
   data () {
@@ -74,7 +78,9 @@ export default {
       answer:0,
       opanswer:0,
       status:"",
-      opstatus:"" // correct or wrong
+      opstatus:"", // correct or wrong
+      answeredstatus:"",
+      socketid:""
     }
   },
   computed:{
@@ -82,28 +88,35 @@ export default {
           return this.$store.state.roomid
       }
   },
+  watch: {
+      roomid:()=>{
+          if(roomid == '')
+            location.href = "http://localhost:8080/Begin"
+      }
+  },
   created:function(){
       
-     // this.fetchdata()
       console.log("In Game Page")
-      //if(this.roomid != pathroom)
-      //{
-
-      //}
       socket.emit("Starting",this.roomid)
 
   },
   mounted:function(){
       
       socket.on("Permission",(data)=>{
+          this.socketid = socket.id
           if(data.data == "Yes")
           {
+              //Before Playing Game
               this.settimer(5)
+              //Move to question 1
               this.questions = data.questions
+              console.log(data.questions)
               this.currentques = data.questions[0]
+              
           }
           else{
-              console.log("FAIL!")
+              console.log("Fail to Enter Game")
+              alert("Fail to Enter Game")        
           }
       })
       
@@ -114,25 +127,52 @@ export default {
       socket.on("FinishChoosen",(data)=>{
             console.log("Both People Choosed")
             console.log(socket.id)
-            if(data[0].socketid == socket.id)
+            console.log(data)
+            var thisstatus = "";
+            if(data.length == 2 )
             {
-                this.opanswer  = data[1].ans 
-                this.opstatus = data[1].status
-                this.opscore = data[1].score
+                if(data[0].socketid == socket.id)
+                {
+                    this.opanswer  = data[1].ans 
+                    this.opstatus = data[1].status
+                    this.opscore = data[1].score
+                }else{
+                    this.opanswer  = data[0].ans 
+                    this.opstatus = data[0].status
+                    this.opscore = data[0].score
+                }
+                thisstatus = "Both choosed";
+
+            }else if(data.length == 1 ){
+                if(data[0].socketid == socket.id)
+                {
+                    this.opanswer  = data[1].ans 
+                    this.opstatus = data[1].status
+                    this.opscore = data[1].score
+                }
+                thisstatus="Only One choose"
             }else{
-                this.opanswer  = data[0].ans 
-                this.opstatus = data[0].status
-                this.opscore = data[0].score
+                thisstatus="No one choose"
             }
-            //this.cleartime();
-            //this.pick()
-            //this.settimer(8)
+            clearInterval(this.timer)
+            clearTimeout(this.timeout)
+            setTimeout(()=>{
+                this.answeredstatus = thisstatus
+                socket.emit("FinishUpdateScore",this.roomid)
+            },3500)
+           
+      })
+
+      socket.on("ChangeToNext",(answered)=>{
+
+          this.pick()
+          this.settimer(8)
       })
 
   },
   methods:{
 
-      async settimer(t){
+      settimer(t){
           this.count = t
           this.timer = setInterval(() => {
               this.count = this.count - 1
@@ -140,15 +180,20 @@ export default {
                   clearInterval(this.timer)
               }
           }, 1000)
+
           this.timeout = setTimeout(()=>{
-              // If no one answers
-              this.pick()
-              this.cleartime()
-              this.settimer(8)
+              clearTimeout(this.timeout)
+              if(this.gamestatus>0)
+                socket.emit("Choose",{},this.roomid)
+              else if(this.gamestatus==0)
+              {
+                this.settimer(8)
+                this.gamestatus+=1
+              }
           },t*1000)
       },
       check(index){
-          this.answer = index
+        this.answer = index
         $(".option").css('pointer-events', 'none');
         if(this.currentques.ans === index){
             console.log("right")
@@ -163,7 +208,7 @@ export default {
         
       },
       pick(){ 
-         if(this.gamestatus == 4){
+         if(this.gamestatus == 5){
             this.gamestatus +=1
             socket.emit("End",this.roomid)
             this.$store.dispatch("setroomid",'')
@@ -176,10 +221,6 @@ export default {
           this.answer =0
           this.opanswer = 0
           $(".option").css('pointer-events', 'auto');
-      },
-      cleartime(){
-            clearTimeout(this.timeout)
-            clearInterval(this.timer)
       },
       setdatas(){
          // socket.emit("SetData",{"skills": this.skills})

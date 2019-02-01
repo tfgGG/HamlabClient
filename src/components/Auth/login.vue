@@ -21,7 +21,7 @@
           v-model="password"
         ></v-text-field>
         <br>
-        <div class="danger-alert"  />
+        <div class="danger-alert" v-html="error" />
         <br>
         <v-btn
           dark
@@ -35,7 +35,6 @@
 </template>
 
 <script>
-import google from '@/lib/google';
 import Auth from '@/lib/Auth'
 export default {
   name: 'login',
@@ -43,7 +42,8 @@ export default {
     return {
       msg: 'Welcome to Your Vue.js App',
       email:"",
-      password:""
+      password:"",
+      error:''
     }
   },
   metaInfo:{

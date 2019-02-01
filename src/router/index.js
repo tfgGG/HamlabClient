@@ -4,8 +4,11 @@ import Meta from 'vue-meta'
 import HelloWorld from '@/components/HelloWorld'
 import login from '@/components/Auth/login'
 import Register from '@/components/Auth/Register'
+import ChoosePic from '@/components/Auth/ChoosePic'
+import RegisterMain from '@/components/Auth/RegisterMain'
 import Game from '@/components/Game/Game'
 import Begin from '../components/Game/Begin'
+import Shop from '@/components/Person/Shop'
 
 Vue.use(Router)
 Vue.use(Meta)
@@ -15,18 +18,18 @@ export default new Router({
   base: __dirname,
   routes: [  
     {
-      path: '/first',
-      name: 'Begin',
-      component: Begin
+      path: '/ChoosePic',
+      name: 'choosepic',
+      component: ChoosePic
     },
     {
       path:'/register',
-      name:'register',
-      component: Register
+      name:'registermain',
+      component: RegisterMain
     },
     {
       path: '/game',
-      name: 'Game',
+      name: 'game',
       component: Game
     },
     {
@@ -38,6 +41,11 @@ export default new Router({
       path: '/login',
       name: 'login',
       component: login
+    },
+    {
+      path: '/shop',
+      name: 'shop',
+      component: Shop
     },
     
   ]

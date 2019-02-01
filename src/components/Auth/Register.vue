@@ -1,6 +1,5 @@
 <template>
-   <v-layout column>
-    <v-flex xs6 offset-xs3>
+    <v-flex xs12>
       <v-card title="Register">
         <form 
           name="tab-tracker-form"
@@ -18,7 +17,7 @@
           ></v-text-field>
         </form>
         <br>
-        <div class="danger-alert"  />
+        <div class="danger-alert" v-html="error" />
         <br>
         <v-btn
           dark
@@ -28,17 +27,21 @@
         </v-btn>
       </v-card>
     </v-flex>
-  </v-layout>
 </template>
 
 <script>
 import Auth from '@/lib/Auth'
+import ChoosePic from '@/components/Auth/ChoosePic.vue'
 export default {
-  name: 'Register',
+  name: 'register',
+  components:{
+    ChoosePic:ChoosePic
+  },
   data () {
     return {
       email:'',
-      password:''
+      password:'',
+      error:''
     }
   },
   methods:{
@@ -47,13 +50,15 @@ export default {
            await Auth.register({
              email:this.email,
              password:this.password,
-             error: null
           })
+          this.error ='Success'
+          //TODO:Push route
+          $route.push("ChoosePic")
+
       }catch(error){
         this.error = error.response.data.error
+        console.log(error.response)
       }
-        
-        console.log(response.data);
     }
 
   }
