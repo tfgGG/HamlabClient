@@ -11,7 +11,7 @@
                 <span>CountDown1:</span>
                 <span>{{count}}</span>
             </div>
-            <div v-if="gamestatus >0 && gamestatus <5" class="item elevation-5">
+            <div v-if="gamestatus >0 && gamestatus < quesnum+1 " class="item elevation-5">
                 <span>CountDown2:</span>
                 <span>{{count}}</span>
             </div>          
@@ -24,10 +24,9 @@
       </v-layout>
       <v-layout row align-start justify-center >
         <v-flex  xs12>
-            <div v-show="gamestatus >0 && gamestatus <5 ">
+            <div v-show="gamestatus >0 && gamestatus <  quesnum+1 ">
                 <h3>{{currentques.question}}</h3>
-                <h4>{{ answer }}  ||| {{ opanswer }}</h4>
-                
+                <h4>{{ answer }}  ||| {{ opanswer }}</h4>      
                 <ul>
                         <li v-for="(value, index) in currentques.options"
                             @click="check(index+1)" 
@@ -43,13 +42,20 @@
                             <span v-if = "opstatus=='correct' && opanswer == index+1" style="">O</span>
                             <span v-if = "opstatus=='wrong' && opanswer == index+1" style="">X</span>
                         </li>
-   
                 </ul>
             </div>
+            <!--道具-->
+            <div>{{iteminfo.content.discription}}<v-btn @click="doublepickitem()">使用</v-btn></div>
+            <v-card>
+                <div v-for="item in useritem" :key='item.id' @click="pickitem(item)">
+                    {{item.content.name}}
+                </div>
+            </v-card>
+            <!---->
             <div>
                 {{answeredstatus}}
             </div>
-            <div v-show="gamestatus == 5 ">
+            <div v-show="gamestatus ==  quesnum+1 ">
                 <h3>End Game</h3>
             </div>
         </v-flex>
@@ -58,13 +64,19 @@
 </template>
 
 <script>
+import Auth from '@/lib/Auth';
 import io from 'socket.io-client';
+import Item from './Item.vue';
 //var socket = io.connect("https://whispering-forest-23961.herokuapp.com/");
 var socket = io.connect('http://localhost:3000/')
 export default {
   name: 'Game',
+  components:{
+      Item:Item
+  },
   data () {
     return {
+      quesnum :6,
       user:[],
       gamestatus:0, //0:Setting //1:ques1 //2:ques2 //5:End
       data:[],
@@ -80,12 +92,16 @@ export default {
       status:"",
       opstatus:"", // correct or wrong
       answeredstatus:"",
-      socketid:""
+      socketid:"",
+      iteminfo:""
     }
   },
   computed:{
       roomid(){
           return this.$store.state.roomid
+      },
+      useritem(){
+            return this.$store.state.useritem
       }
   },
   watch: {
@@ -155,6 +171,7 @@ export default {
                 thisstatus="No one choose"
             }
             clearInterval(this.timer)
+            this.count= 0
             clearTimeout(this.timeout)
             setTimeout(()=>{
                 this.answeredstatus = thisstatus
@@ -164,14 +181,31 @@ export default {
       })
 
       socket.on("ChangeToNext",(answered)=>{
-
+          this.answeredstatus = ''
           this.pick()
           this.settimer(8)
       })
 
+       this.init();
   },
   methods:{
 
+      pickitem(item){
+          this.iteminfo = item
+      },
+      doublepickitem(){
+          const item =this.iteminfo.content
+          //if(item.points != 0)
+                
+          //else
+
+      },
+
+      async init(){
+           const store = this.$store
+            const response = await Auth.getuserItem(1)//
+            store.dispatch("setItem",response.data);
+      },
       settimer(t){
           this.count = t
           this.timer = setInterval(() => {
@@ -208,7 +242,7 @@ export default {
         
       },
       pick(){ 
-         if(this.gamestatus == 5){
+         if(this.gamestatus ==  this.quesnum+1){
             this.gamestatus +=1
             socket.emit("End",this.roomid)
             this.$store.dispatch("setroomid",'')

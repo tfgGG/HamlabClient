@@ -11,5 +11,9 @@ export default {
       
       getdefaultpic(){
         return Api().get('/GET/defaultpic')
+      },
+
+      getuserItem(uid){
+        return Api().get('/GET/useritem/'+uid)
       }
 }
